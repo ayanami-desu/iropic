@@ -1,0 +1,5 @@
+
+secret_key.txt
+image/migrations/
+image/__pycache__/
+iropic/__pycache__/
