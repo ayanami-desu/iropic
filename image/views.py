@@ -1,4 +1,4 @@
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
@@ -7,12 +7,11 @@ from .serializers import *
 from .models import Images, Labels, Albums, upload_file_deleted
 from .optimize import pic_optimize
 import hashlib
+import random
 
 def file_md5(web_file):
     data = web_file.open(mode='rb').read()
     return hashlib.md5(data).hexdigest()
-
-
 
 def tool(request):
     all_image = Images.objects.all()
@@ -20,6 +19,25 @@ def tool(request):
         image.md5 = file_md5(image.upload_file)
         image.save()
     return JsonResponse({'msg':'完成'})
+
+@api_view(['GET'])
+def random_image(request):
+    field = request.GET.get('field', None)
+    if field == None:
+        return Response({'msg': '参数无效'}, status=400)
+    latest_img = Images.objects.latest('id')
+    max_id = Images.objects.latest('id').id
+    times = 0
+    while times<200:
+        pk = random.randint(1, max_id)
+        image = Images.objects.filter(pk=pk).first()
+        times += 1
+        if image:
+            break
+    if field == 'image':
+        return HttpResponse(image.thumbnail_file, content_type="image/webp")
+    if field == 'pid':
+        return Response({'pid': image.id})
 
 class ImageApi(APIView):
     def get(slef, request):
