@@ -1,25 +1,31 @@
 from rest_framework import serializers
 from .models import Labels, Images, Albums
 
-class NewImageSerializer(serializers.ModelSerializer):
+class NewImageSer(serializers.ModelSerializer):
     class Meta:
         model = Images
-        exclude = ('labels',)
-        #fields = '__all__'
+        fields = ('edit_time', 'origin_file', 'webp_file', 'md5', 'origin_filename', 'file_type', 'belong_album')
 
-class ImageSerializer(serializers.ModelSerializer):
-    belong_to_album = serializers.ReadOnlyField(source="belong_to_album.name")
+class ImageInfoSer(serializers.ModelSerializer):
+    images_set = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    belong_album = serializers.ReadOnlyField(source="belong_album.name")
     class Meta:
         model = Images
-        fields = ('belong_to_album', 'edit_time', 'labels', 'origin_filename', 'author')
-        read_only_fields = ('belong_to_album', 'edit_time', )
+        fields = ('belong_album', 'edit_time', 'labels', 'images_set')
+        read_only_fields = ('belong_album', 'edit_time', )
 
-class ImageListSerializer(serializers.ModelSerializer):
-    belong_to_album = serializers.ReadOnlyField(source="belong_to_album.name")
+class ImageListSer(serializers.ModelSerializer):
+    belong_album = serializers.ReadOnlyField(source="belong_album.name")
     class Meta:
         model = Images
-        fields = ('belong_to_album', 'edit_time', 'labels', 'id', 'isR18')
-        read_only_fields = ('belong_to_album', 'edit_time', )
+        fields = ('belong_album', 'edit_time', 'labels', 'id', 'isR18')
+        read_only_fields = ('belong_album', 'edit_time')
+        
+    def to_representation(self, instance):
+        # 返回图片含有的差分数
+        data = super().to_representation(instance)
+        data['sub_img_num'] = instance.images_set.count()
+        return data
 
 class LabelSerializer(serializers.ModelSerializer):
     class Meta:

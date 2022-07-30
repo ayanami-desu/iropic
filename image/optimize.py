@@ -15,7 +15,6 @@ def pic_optimize(pic, aim_type):
     file=pic_io,
     field_name=None,
     name=pic.name,
-    #content_type=pic.content_type,
     content_type=aim_type,
     size=pic.size,
     charset=None
