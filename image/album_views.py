@@ -8,7 +8,10 @@ from .models import Images, Albums
 class AlbumApi(APIView):
     def get(self, request):
         #获取相册列表
-        albums = Albums.objects.all()
+        if not request.auth:
+            albums = Albums.objects.exclude(isR18=True)
+        else:
+            albums = Albums.objects.all()
         data = AlbumListSerializer(albums, many=True).data
         return Response({'data':data})
     def post(self,request):
@@ -22,7 +25,7 @@ class AlbumApi(APIView):
                 return Response({'msg':'新建相册成功'})
         except Exception as e:
             print(e)
-            return Response({'msg':'新建相册失败'}, status=400)
+            return Response({'msg':'新建相册失败'}, status=500)
         
     def delete(self, request):
         #删除相册
@@ -36,7 +39,7 @@ class AlbumApi(APIView):
                 return Response({'msg': '删除相册成功'})
             except Exception as e:
                 print(e)
-                return Response({'err':str(e)}, status=401)
+                return Response({'err':str(e)}, status=500)
         else:
             return Response({'msg': '无效参数'}, status=400)
     def put(self, request):
@@ -51,7 +54,7 @@ class AlbumApi(APIView):
                 new_album.save()
             return Response({'msg': '修改相册成功'})
         else:
-            return Response({'msg': '无效参数'}, status=400)
+            return Response({'msg': '需要album_id'}, status=400)
 
 class AlbumData(APIView):
     def post(self, request):
@@ -64,7 +67,7 @@ class AlbumData(APIView):
             album = Albums.objects.get(id=album_id)
             for pid in pid_list:
                 image = Images.objects.get(id=pid)
-                image.belong_to_album = album
+                image.belong_album = album
                 image.save()
             return Response({'msg': '添加成功'})
         else:
@@ -77,7 +80,7 @@ class AlbumData(APIView):
         album_id = request.data.get('albumId', None)
         if pid and album_id:
             image = Images.objects.get(id=pid)
-            image.belong_to_album = None
+            image.belong_album = None
             image.save()
             return Response({'msg': '删除成功'})
         else:
@@ -97,31 +100,31 @@ class AlbumCover(APIView):
                     if not images.exists():
                         return Response({'msg': '此相册无封面'}, status=404)
                     else:
-                        cover = images.order_by('-edit_time')[0].thumbnail_file
+                        cover = images.order_by('-edit_time')[0].webp_file
                         return FileResponse(cover)
             except Exception as e:
                 print(e)
-                return Response({'err':str(e)}, status=401)
+                return Response({'err':str(e)}, status=400)
         else:
             return Response({'msg': '无效参数'}, status=400)
     def put(self, request):
         #修改相册封面
-        if not request.auth:
-            return Response({'msg':'permission denied'}, status=401)
-        pid = request.data.get('pid', None)
-        #album_id = request.data.get('albumId', None)
-        if pid:
-            try:
-                image = Images.objects.get(id=pid)
-                album = image.belong_to_album
-                if album:
-                    album.cover = image.thumbnail_file
-                    album.save()
-                    return Response({'msg':'修改相册封面成功'})
-                else:
-                   return Response({'msg': '此图片不属于任何相册'})
-            except Exception as e:
-                print(e)
-                return Response({'err':str(e)}, status=401)
-        else:
-            return Response({'msg': '无效参数'}, status=400)
+        return Response({'msg':'暂时取消此功能'})
+        # if not request.auth:
+        #     return Response({'msg':'permission denied'}, status=401)
+        # pid = request.data.get('pid', None)
+        # if pid:
+        #     try:
+        #         image = Images.objects.get(id=pid)
+        #         album = image.belong_album
+        #         if album:
+        #             album.cover = image.webp_file
+        #             album.save()
+        #             return Response({'msg':'修改相册封面成功'})
+        #         else:
+        #            return Response({'msg': '此图片不属于任何相册'})
+        #     except Exception as e:
+        #         print(e)
+        #         return Response({'err':str(e)}, status=400)
+        # else:
+        #     return Response({'msg': '无效参数'}, status=400)

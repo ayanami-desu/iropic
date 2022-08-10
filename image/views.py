@@ -34,7 +34,7 @@ def random_image(request):
         if image:
             break
     if field == 'image':
-        return HttpResponse(image.thumbnail_file, content_type="image/webp")
+        return HttpResponse(image.webp_file, content_type="image/webp")
     if field == 'pid':
         return Response({'pid': image.id})
 
