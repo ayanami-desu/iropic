@@ -42,7 +42,6 @@ class Images(models.Model):
 
 @receiver(pre_delete, sender=Images)
 def upload_file_deleted(instance, *args, **kwargs):
-    pass
     print('准备删除文件')
     instance.origin_file.delete(save=False)
     instance.webp_file.delete(save=False)

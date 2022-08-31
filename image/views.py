@@ -239,7 +239,7 @@ def image_handle(request):
     data = request.data
     file_type = data['fileType']
     if not file_type.startswith('image'):
-        return Response({'err':'仅支持图片文件'}, status=400)
+        return Response({'msg':'仅支持图片文件'}, status=400)
     if the_file:
         img_data = {
             'origin_file': the_file,
@@ -249,6 +249,11 @@ def image_handle(request):
             'webp_file': pic_optimize(the_file, 'WEBP'),
             'md5': file_md5(the_file)
         }
+        # if data['size'] > '524288':
+        #     #大于0.5m的图片才压缩
+        #     img_data['webp_file'] = pic_optimize(the_file, 'WEBP')
+        # else:
+        #     img_data['webp_file'] = the_file
         if data.get('albumId', None):
            img_data['belong_album'] =  data['albumId']
         try:
@@ -260,6 +265,6 @@ def image_handle(request):
             print(e)
             return Response({'msg':'保存图片失败', 'err': str(e)}, status=500)
     else:
-        return Response({'msg':'没有检测到文件'}, status=400)
+        return Response({'msg':'没有检测到文件'}, status=404)
 
     
