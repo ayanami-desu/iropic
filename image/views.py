@@ -18,6 +18,18 @@ class Tool(APIView):
         return JsonResponse({'msg':'操作完成'})
     def post(self, request):
         return JsonResponse({'msg':'操作完成'})
+        
+class ImageSeq(APIView):
+    def get(self, request):
+        if not request.auth:
+            return Response({'msg':'permission denied'}, status=401)
+        try:
+            images = Images.objects.filter(labels=None)
+            data = ImageSeqSer(images, many=True).data
+            return Response({'data': data, 'num':images.count(), 'msg':'获取成功'})
+        except Exception as e:
+            print(e)
+            return Response({'err':str(e)}, status=500)
 
 @api_view(['GET'])
 def random_image(request):

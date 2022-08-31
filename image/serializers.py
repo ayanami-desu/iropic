@@ -6,6 +6,11 @@ class NewImageSer(serializers.ModelSerializer):
         model = Images
         fields = ('edit_time', 'origin_file', 'webp_file', 'md5', 'origin_filename', 'file_type', 'belong_album')
 
+class ImageSeqSer(serializers.ModelSerializer):
+    class Meta:
+        model = Images
+        fields = ('id', 'origin_filename')
+
 class ImageInfoSer(serializers.ModelSerializer):
     images_set = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     belong_album = serializers.ReadOnlyField(source="belong_album.name")

@@ -8,4 +8,5 @@ urlpatterns = [
     path('r18', views.ImageR18.as_view()),
     path('random', views.random_image),
     path('tool',views.Tool.as_view()),
+    path('seq', views.ImageSeq.as_view()),
 ]
