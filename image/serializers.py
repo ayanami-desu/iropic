@@ -23,7 +23,7 @@ class ImageListSer(serializers.ModelSerializer):
     belong_album = serializers.ReadOnlyField(source="belong_album.name")
     class Meta:
         model = Images
-        fields = ('belong_album', 'edit_time', 'labels', 'id', 'isR18')
+        fields = ('belong_album', 'edit_time', 'labels', 'id', 'isR18', 'origin_filename')
         read_only_fields = ('belong_album', 'edit_time')
         
     def to_representation(self, instance):

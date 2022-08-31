@@ -24,7 +24,7 @@ class ImageSeq(APIView):
         if not request.auth:
             return Response({'msg':'permission denied'}, status=401)
         try:
-            images = Images.objects.filter(labels=None)
+            images = Images.objects.filter(p_image=None).filter(labels=None)
             data = ImageSeqSer(images, many=True).data
             return Response({'data': data, 'num':images.count(), 'msg':'获取成功'})
         except Exception as e:
@@ -47,8 +47,25 @@ def random_image(request):
             break
     if field == 'image':
         return HttpResponse(image.webp_file, content_type="image/webp")
-    if field == 'pid':
+    elif field == 'pid':
         return Response({'pid': image.id})
+    elif field == 'pidList':
+        num = int(request.GET.get('num', -1))
+        pidSet = set()
+        if num>0:
+            times = 0
+            while times<200 and len(pidSet)<num:
+                pk = random.randint(min_id, max_id)
+                image = Images.objects.filter(pk=pk).first()
+                times += 1
+                if image:
+                    pidSet.add(image.id)
+                    times = 0
+            return Response({'pidList': list(pidSet)})
+        else:
+            return Response({'msg': '参数num有误'}, status=400)
+    else:
+        return Response({'msg': '参数field无效'}, status=400)
 
 class ImageApi(APIView):
     #根据图片id返回图片
@@ -74,7 +91,7 @@ class ImageApi(APIView):
         try:
             page = int(request.data.get('page', -1))
             num = int(request.data.get('num', -1))
-            sort_by = request.data.get('sortBy', 'down')
+            order_by = request.data.get('orderBy', '-edit_time')
             if num>16:
                 return Response({'msg':'超过一次请求限制最大数量'}, status=400)
             if page<0 or num<0:
@@ -95,10 +112,7 @@ class ImageApi(APIView):
                     for i in range(len(tag_list)):
                         images = images.filter(labels__name=tag_list[i])
             images_num = images.count()
-            if sort_by == 'up':
-                images = images.order_by('edit_time')[(page-1)*num : page*num]
-            elif sort_by == 'down':
-                images = images.order_by('-edit_time')[(page-1)*num : page*num]
+            images = images.order_by(order_by)[(page-1)*num : page*num]
             data = ImageListSer(images, many=True).data
             return Response({'data':data, 'imageNum':images_num})
         except Exception as e:
@@ -223,12 +237,15 @@ def image_handle(request):
         return Response({'msg':'permission denied'}, status=401)
     the_file = request.FILES.get('file',None)
     data = request.data
+    file_type = data['fileType']
+    if not file_type.startswith('image'):
+        return Response({'err':'仅支持图片文件'}, status=400)
     if the_file:
         img_data = {
             'origin_file': the_file,
             'edit_time': data['lastModified'],
             'origin_filename': data['name'],
-            'file_type': data['fileType'],
+            'file_type': file_type,
             'webp_file': pic_optimize(the_file, 'WEBP'),
             'md5': file_md5(the_file)
         }
